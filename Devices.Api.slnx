@@ -1,18 +1,18 @@
 <Solution>
   <Folder Name="/src/" />
   <Folder Name="/src/1 - API/">
-    <Project Path="Devices.Api/Devices.Api.csproj" />
+    <Project Path="src/Devices.Api/Devices.Api.csproj" />
   </Folder>
   <Folder Name="/src/2 - Application/">
-    <Project Path="Devices.Application/Devices.Application.csproj" />
+    <Project Path="src/Devices.Application/Devices.Application.csproj" />
   </Folder>
   <Folder Name="/src/3 - Domain/">
-    <Project Path="Devices.Domain/Devices.Domain.csproj" />
+    <Project Path="src/Devices.Domain/Devices.Domain.csproj" />
   </Folder>
   <Folder Name="/src/4 - Infrastructure/">
-    <Project Path="Decives.Infrastructure/Decives.Infrastructure.csproj" />
+    <Project Path="src/Decives.Infrastructure/Decives.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="Devices.UnitTests/Devices.UnitTests.csproj" />
+    <Project Path="src/Devices.UnitTests/Devices.UnitTests.csproj" />
   </Folder>
 </Solution>
