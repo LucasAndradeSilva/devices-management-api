@@ -1,0 +1,60 @@
+name: CI - Build, Test and PR
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run Unit Tests
+        run: dotnet test --no-build --verbosity normal
+
+  create-pr:
+    needs: build-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: develop
+          branch: ${{ github.ref_name }}
+          title: "feat: ${{ github.ref_name }} → develop"
+          body: |
+            ## 🚀 Automated PR
+            
+            This PR was automatically created after:
+            - ✅ Successful build
+            - ✅ All tests passing
+            
+            ### 📌 Branch
+            `${{ github.ref_name }}`
+          labels: |
+            automated
+            feature
+          draft: false
+          delete-branch: false
