@@ -1,4 +1,6 @@
 
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using Devices.Api.Middlewares;
 using Devices.Application.Interfaces;
 using Devices.Application.Services;
@@ -16,15 +18,35 @@ namespace Devices.Api
 
             builder.Services.AddEndpointsApiExplorer();
 
+            // Version
+            builder.Services.AddApiVersioning(options =>
+            {
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.ReportApiVersions = true;
+                
+                options.ApiVersionReader = new UrlSegmentApiVersionReader();
+            })
+            .AddApiExplorer(options =>
+            {
+                options.GroupNameFormat = "'v'VVV"; // v1, v1.0
+                options.SubstituteApiVersionInUrl = true;
+            });
+
             // Swagger
+            var provider = builder.Services.BuildServiceProvider()
+            .GetRequiredService<IApiVersionDescriptionProvider>();
+
             builder.Services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new()
+                foreach (var description in provider.ApiVersionDescriptions)
                 {
-                    Title = "Devices API",
-                    Version = "v1",
-                    Description = "API for managing devices"
-                });
+                    options.SwaggerDoc(description.GroupName, new()
+                    {
+                        Title = $"Devices API {description.ApiVersion}",
+                        Version = description.ApiVersion.ToString()
+                    });
+                }
             });
 
             builder.Services.AddInfrastructure(builder.Configuration);
@@ -37,7 +59,18 @@ namespace Devices.Api
 
             // Swagger
             app.UseSwagger();
-            app.UseSwaggerUI();
+
+            app.UseSwaggerUI(options =>
+            {
+                var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+                foreach (var description in provider.ApiVersionDescriptions)
+                {
+                    options.SwaggerEndpoint(
+                        $"/swagger/{description.GroupName}/swagger.json",
+                        description.GroupName.ToUpperInvariant());
+                }
+            });
 
             // Middleware
             app.UseMiddleware<ExceptionMiddleware>();
