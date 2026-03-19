@@ -11,12 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Decives.Infrastructure\Decives.Infrastructure.csproj" />
     <ProjectReference Include="..\Devices.Application\Devices.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Middlewares\" />
     <Folder Include="Extensions\" />
   </ItemGroup>
 

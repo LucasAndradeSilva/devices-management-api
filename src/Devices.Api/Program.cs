@@ -1,4 +1,9 @@
 
+using Devices.Api.Middlewares;
+using Devices.Application.Interfaces;
+using Devices.Application.Services;
+using Devices.Infrastructure.DependencyInjection;
+
 namespace Devices.Api
 {
     public class Program
@@ -6,29 +11,39 @@ namespace Devices.Api
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
-            // Add services to the container.
-
+            
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+
+            // Swagger
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new()
+                {
+                    Title = "Devices API",
+                    Version = "v1",
+                    Description = "API for managing devices"
+                });
+            });
+
+            builder.Services.AddInfrastructure(builder.Configuration);
+            builder.Services.AddScoped<IDeviceService, DeviceService>();
+
+            // Health Check
+            builder.Services.AddHealthChecks();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            // Swagger
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
-            app.UseHttpsRedirection();
-
-            app.UseAuthorization();
-
+            // Middleware
+            app.UseMiddleware<ExceptionMiddleware>();
 
             app.MapControllers();
+            app.MapHealthChecks("/health");
 
             app.Run();
         }
