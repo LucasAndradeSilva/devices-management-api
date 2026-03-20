@@ -5,6 +5,7 @@ using Devices.Api.Middlewares;
 using Devices.Application.Interfaces;
 using Devices.Application.Services;
 using Devices.Infrastructure.DependencyInjection;
+using Serilog;
 
 namespace Devices.Api
 {
@@ -16,7 +17,7 @@ namespace Devices.Api
             
             builder.Services.AddControllers();
 
-            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddEndpointsApiExplorer();          
 
             // Version
             builder.Services.AddApiVersioning(options =>
@@ -55,7 +56,23 @@ namespace Devices.Api
             // Health Check
             builder.Services.AddHealthChecks();
 
+            // Logs
+            Log.Logger = new LoggerConfiguration()
+              .Enrich.FromLogContext()              
+              .WriteTo.Console()
+              .WriteTo.File(
+                  "logs/log-.txt",
+                  rollingInterval: RollingInterval.Day)
+              .CreateLogger();
+
+            builder.Host.UseSerilog((ctx, lc) =>
+                lc.Enrich.FromLogContext()
+                  .Enrich.WithCorrelationId()
+                  .ReadFrom.Configuration(ctx.Configuration));
+
             var app = builder.Build();
+
+            app.UseSerilogRequestLogging();
 
             // Swagger
             app.UseSwagger();
