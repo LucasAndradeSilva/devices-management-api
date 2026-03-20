@@ -1,9 +1,9 @@
-﻿using Devices.Application.Interfaces;
-using Devices.Infrastructure.Persistence;
+﻿using Decives.Infrastructure.Persistence;
+using Devices.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace Devices.Infrastructure.Repositories;
+namespace Decives.Infrastructure.Repositories;
 
 public class GenericRepository<T> : IGenericRepository<T> where T : class
 {

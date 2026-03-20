@@ -1,8 +1,10 @@
+using Decives.Infrastructure.DependencyInjection;
+using Decives.Infrastructure.Persistence;
 using Devices.Api.Extensions;
 using Devices.Api.Middlewares;
 using Devices.Application.Interfaces;
 using Devices.Application.Services;
-using Devices.Infrastructure.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace Devices.Api;
@@ -42,6 +44,12 @@ public class Program
 
         app.MapControllers();
         app.MapHealthChecks("/health");
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<DevicesDbContext>();
+            db.Database.Migrate();
+        }
 
         app.Run();
     }

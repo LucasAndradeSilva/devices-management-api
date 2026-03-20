@@ -2,18 +2,21 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Devices.Application.Interfaces;
-using Devices.Infrastructure.Persistence;
-using Devices.Infrastructure.Repositories;
 using Devices.Application.Services;
+using Decives.Infrastructure.Persistence;
+using Decives.Infrastructure.Repositories;
 
-namespace Devices.Infrastructure.DependencyInjection;
+namespace Decives.Infrastructure.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<DevicesDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(
+                configuration.GetConnectionString("DefaultConnection"),
+                x => x.EnableRetryOnFailure()
+            ));
 
         services.AddScoped<IDeviceService, DeviceService>();
         services.AddScoped<IAuthService, AuthService>();

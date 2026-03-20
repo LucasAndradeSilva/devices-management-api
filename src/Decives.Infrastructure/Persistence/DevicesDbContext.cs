@@ -1,12 +1,11 @@
 ﻿using Devices.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Devices.Infrastructure.Persistence;
+namespace Decives.Infrastructure.Persistence;
 
 public class DevicesDbContext : DbContext
 {
-    public DevicesDbContext(DbContextOptions<DevicesDbContext> options)
-        : base(options)
+    public DevicesDbContext(DbContextOptions<DevicesDbContext> options) : base(options)
     {
     }
 
