@@ -1,151 +1,48 @@
-
-using Asp.Versioning;
-using Asp.Versioning.ApiExplorer;
+using Devices.Api.Extensions;
 using Devices.Api.Middlewares;
 using Devices.Application.Interfaces;
 using Devices.Application.Services;
 using Devices.Infrastructure.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using Serilog;
-using System.Text;
 
-namespace Devices.Api
+namespace Devices.Api;
+
+public class Program
 {
-    public class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
-            
-            builder.Services.AddControllers();
+        var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddEndpointsApiExplorer();          
+        // Controllers
+        builder.Services.AddControllers();
+        builder.Services.AddEndpointsApiExplorer();
 
-            // Version
-            builder.Services.AddApiVersioning(options =>
-            {
-                options.DefaultApiVersion = new ApiVersion(1, 0);
-                options.AssumeDefaultVersionWhenUnspecified = true;
-                options.ReportApiVersions = true;
-                
-                options.ApiVersionReader = new UrlSegmentApiVersionReader();
-            })
-            .AddApiExplorer(options =>
-            {
-                options.GroupNameFormat = "'v'VVV"; // v1, v1.0
-                options.SubstituteApiVersionInUrl = true;
-            });
+        // Extensions
+        builder.Services.AddApiVersioningConfig();
+        builder.Services.AddSwaggerConfig();
+        builder.Services.AddInfrastructure(builder.Configuration);
+        builder.Services.AddScoped<IDeviceService, DeviceService>();
+        builder.Services.AddHealthChecks();
+        builder.Services.AddJwtAuth(builder.Configuration);
 
-            // Swagger
-            var provider = builder.Services.BuildServiceProvider()
-            .GetRequiredService<IApiVersionDescriptionProvider>();
+        builder.AddLoggingConfig();
 
-            builder.Services.AddSwaggerGen(options =>
-            {
-                foreach (var description in provider.ApiVersionDescriptions)
-                {
-                    options.SwaggerDoc(description.GroupName, new()
-                    {
-                        Title = $"Devices API {description.ApiVersion}",
-                        Version = description.ApiVersion.ToString()
-                    });
-                }
+        var app = builder.Build();
 
-                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                {
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",
-                    BearerFormat = "JWT",
-                    In = ParameterLocation.Header,
-                    Description = "Enter JWT token"
-                });
+        // Middlewares
+        app.UseSerilogRequestLogging();
+        app.UseMiddleware<ExceptionMiddleware>();
 
-                options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        },
-                        Array.Empty<string>()
-                    }
-                });
-            });
+        // Auth
+        app.UseAuthentication();
+        app.UseAuthorization();
 
-            builder.Services.AddInfrastructure(builder.Configuration);
-            builder.Services.AddScoped<IDeviceService, DeviceService>();
+        // Swagger
+        app.UseSwaggerConfig();
 
-            // Health Check
-            builder.Services.AddHealthChecks();
+        app.MapControllers();
+        app.MapHealthChecks("/health");
 
-            // Logs
-            Log.Logger = new LoggerConfiguration()
-              .Enrich.FromLogContext()              
-              .WriteTo.Console()
-              .WriteTo.File(
-                  "logs/log-.txt",
-                  rollingInterval: RollingInterval.Day)
-              .CreateLogger();
-
-            builder.Host.UseSerilog((ctx, lc) =>
-                lc.Enrich.FromLogContext()
-                  .Enrich.WithCorrelationId()
-                  .ReadFrom.Configuration(ctx.Configuration));
-
-            // Authentication & Authorization
-            builder.Services.AddAuthentication("Bearer")
-            .AddJwtBearer("Bearer", options =>
-            {
-                var securityKey = Encoding.UTF8.GetBytes(builder.Configuration["SecurityKey"]);
-                options.TokenValidationParameters = new()
-                {
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(securityKey)
-                };
-            });
-
-            builder.Services.AddAuthorization();
-
-            var app = builder.Build();
-
-            // Logs
-            app.UseSerilogRequestLogging();
-
-            // Authentication & Authorization
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            // Swagger
-            app.UseSwagger();
-
-            app.UseSwaggerUI(options =>
-            {
-                var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-
-                foreach (var description in provider.ApiVersionDescriptions)
-                {
-                    options.SwaggerEndpoint(
-                        $"/swagger/{description.GroupName}/swagger.json",
-                        description.GroupName.ToUpperInvariant());
-                }               
-            });
-
-            // Middleware
-            app.UseMiddleware<ExceptionMiddleware>();
-
-            app.MapControllers();
-            app.MapHealthChecks("/health");
-
-            app.Run();
-        }
+        app.Run();
     }
 }

@@ -11,7 +11,10 @@ namespace Devices.Api.Controllers;
 /// Manages device resources.
 /// Provides operations to create, retrieve, update and delete devices.
 /// </summary>
+
+#if !DEBUG
 [Authorize]
+#endif
 [ApiController]
 [ApiVersion("1.0")]
 [Produces("application/json")]
