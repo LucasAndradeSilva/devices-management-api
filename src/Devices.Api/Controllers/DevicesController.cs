@@ -2,6 +2,7 @@
 using Devices.Application.Common;
 using Devices.Application.DTOs;
 using Devices.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Devices.Api.Controllers;
@@ -10,10 +11,11 @@ namespace Devices.Api.Controllers;
 /// Manages device resources.
 /// Provides operations to create, retrieve, update and delete devices.
 /// </summary>
+[Authorize]
 [ApiController]
 [ApiVersion("1.0")]
-[Route("api/v{version:apiVersion}/[controller]")]
 [Produces("application/json")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class DevicesController : ControllerBase
 {
     private readonly IDeviceService _service;
@@ -35,8 +37,8 @@ public class DevicesController : ControllerBase
     ///
     ///     POST /api/v1/devices
     ///     {
-    ///        "name": "iPhone 15",
-    ///        "brand": "Apple"
+    ///        "name": "Android 10",
+    ///        "brand": "Google"
     ///     }
     ///
     /// Rules:
@@ -49,9 +51,9 @@ public class DevicesController : ControllerBase
     /// <response code="400">Invalid input data</response>
     /// <response code="500">Unexpected error</response>
     [HttpPost]
-    [ProducesResponseType(typeof(Result<DeviceResponseDto>), 201)]
     [ProducesResponseType(typeof(Result<object>), 400)]
     [ProducesResponseType(typeof(Result<object>), 500)]
+    [ProducesResponseType(typeof(Result<DeviceResponseDto>), 201)]
     public async Task<IActionResult> Create([FromBody] DeviceDto dto)
     {
         var result = await _service.CreateAsync(dto);
@@ -72,8 +74,8 @@ public class DevicesController : ControllerBase
     /// <response code="200">Devices retrieved successfully</response>
     /// <response code="500">Unexpected error</response>
     [HttpGet]
-    [ProducesResponseType(typeof(Result<IEnumerable<DeviceResponseDto>>), 200)]
     [ProducesResponseType(typeof(Result<object>), 500)]
+    [ProducesResponseType(typeof(Result<IEnumerable<DeviceResponseDto>>), 200)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
@@ -91,9 +93,9 @@ public class DevicesController : ControllerBase
     /// <response code="404">Device not found</response>
     /// <response code="500">Unexpected error</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(Result<DeviceResponseDto>), 200)]
     [ProducesResponseType(typeof(Result<object>), 404)]
     [ProducesResponseType(typeof(Result<object>), 500)]
+    [ProducesResponseType(typeof(Result<DeviceResponseDto>), 200)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _service.GetByIdAsync(id);

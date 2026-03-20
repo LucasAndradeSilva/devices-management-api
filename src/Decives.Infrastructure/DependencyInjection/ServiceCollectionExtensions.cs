@@ -10,14 +10,13 @@ namespace Devices.Infrastructure.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<DevicesDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<IDeviceService, DeviceService>();
+        services.AddScoped<IAuthService, AuthService>();
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
         return services;

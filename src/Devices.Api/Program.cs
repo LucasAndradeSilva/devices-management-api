@@ -5,7 +5,10 @@ using Devices.Api.Middlewares;
 using Devices.Application.Interfaces;
 using Devices.Application.Services;
 using Devices.Infrastructure.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Serilog;
+using System.Text;
 
 namespace Devices.Api
 {
@@ -48,6 +51,31 @@ namespace Devices.Api
                         Version = description.ApiVersion.ToString()
                     });
                 }
+
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter JWT token"
+                });
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
             });
 
             builder.Services.AddInfrastructure(builder.Configuration);
@@ -70,9 +98,31 @@ namespace Devices.Api
                   .Enrich.WithCorrelationId()
                   .ReadFrom.Configuration(ctx.Configuration));
 
+            // Authentication & Authorization
+            builder.Services.AddAuthentication("Bearer")
+            .AddJwtBearer("Bearer", options =>
+            {
+                var securityKey = Encoding.UTF8.GetBytes(builder.Configuration["SecurityKey"]);
+                options.TokenValidationParameters = new()
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(securityKey)
+                };
+            });
+
+            builder.Services.AddAuthorization();
+
             var app = builder.Build();
 
+            // Logs
             app.UseSerilogRequestLogging();
+
+            // Authentication & Authorization
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             // Swagger
             app.UseSwagger();
@@ -86,7 +136,7 @@ namespace Devices.Api
                     options.SwaggerEndpoint(
                         $"/swagger/{description.GroupName}/swagger.json",
                         description.GroupName.ToUpperInvariant());
-                }
+                }               
             });
 
             // Middleware
