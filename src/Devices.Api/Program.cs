@@ -6,6 +6,7 @@ using Devices.Application.Interfaces;
 using Devices.Application.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Data.Entity;
 
 namespace Devices.Api;
 
@@ -48,7 +49,9 @@ public class Program
         using (var scope = app.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<DevicesDbContext>();
-            db.Database.Migrate();
+
+            if (db.Database.IsRelational())            
+                db.Database.Migrate();
         }
 
         app.Run();
