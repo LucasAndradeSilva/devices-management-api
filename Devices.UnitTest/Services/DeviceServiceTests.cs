@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System.Net;
 
-namespace Devices.UnitTests.Services;
+namespace Devices.UnitTest.Services;
 
 public class DeviceServiceTests
 {
