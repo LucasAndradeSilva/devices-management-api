@@ -54,24 +54,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Create Pull Request to develop
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: develop
-          branch: ${{ github.ref_name }}
+          branch: ${{ github.head_ref || github.ref_name }}
           title: "feat: auto PR from ${{ github.ref_name }} to develop"
           body: |
             ## 🤖 Automated Pull Request
-            
+          
             This PR was automatically created after a successful CI run.
-            
+          
             ### ✅ Checks passed:
             - Build succeeded
             - Unit tests passed
             - Code formatting validated
-            - Security vulnerability check completed
-            
+          
             🚀 Ready for review!
           draft: false
           delete-branch: false
