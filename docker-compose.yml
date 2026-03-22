@@ -1,19 +1,6 @@
-version: '3.8'
-
 services:
-
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: sqlserver
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Pass123
-    ports:
-      - "1433:1433"
-    networks:
-      - devices-network
-
-  api:
+  devices-api:
+    image: ${DOCKER_REGISTRY-}devicesapi
     build:
       context: .
       dockerfile: src/Devices.Api/Dockerfile
@@ -21,10 +8,23 @@ services:
     depends_on:
       - sqlserver
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=DevicesDb;User Id=sa;Password=YourStrong@Pass123;TrustServerCertificate=True;
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=DevicesDb;User Id=sa;Password=Devices#2026Db!;TrustServerCertificate=True;
     ports:
       - "5000:80"
+    networks:
+      - devices-network
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    hostname: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Devices#2026Db!
+    ports:
+      - "11433:1433"
     networks:
       - devices-network
 

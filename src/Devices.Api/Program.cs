@@ -50,9 +50,34 @@ public class Program
         {
             var db = scope.ServiceProvider.GetRequiredService<DevicesDbContext>();
 
-            if (db.Database.IsRelational())            
-                db.Database.Migrate();
+            if (db.Database.IsRelational())
+            {
+                Console.WriteLine("Applying migrations...");
+                var retries = 0;
+                while (retries < 10)
+                {
+                    try
+                    {
+
+                        db.Database.Migrate();
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Attempt {retries}");
+
+                        Console.WriteLine(ex.Message);
+
+                        retries++;
+                        Thread.Sleep(5000);
+                    }
+                }
+            }
         }
+
+        Console.WriteLine("API Started in Enviroment: " + builder.Environment.EnvironmentName);
+
+        app.MapGet("/", () => "OK");
 
         app.Run();
     }
