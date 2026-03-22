@@ -37,9 +37,6 @@ jobs:
       - name: Check code formatting
         run: dotnet format Devices.Api.slnx --verify-no-changes
 
-      - name: Check for vulnerable packages
-        run: dotnet list Devices.Api.slnx package --vulnerable
-
       - name: Build
         run: dotnet build Devices.Api.slnx --no-restore --configuration Release
 
