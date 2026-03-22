@@ -24,7 +24,7 @@ public class AuthController : ControllerBase
     /// <returns>JWT token</returns>
     [HttpPost("login")]
     public IActionResult Login([FromBody] LoginDto dto)
-    {        
+    {
         if (dto.Username != "admin" || dto.Password != "123")
             return Unauthorized(new
             {

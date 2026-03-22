@@ -21,7 +21,7 @@ public class Device
 
         Validate();
     }
-    
+
     public void UpdateName(string name)
     {
         if (State == DeviceState.InUse)
@@ -31,7 +31,7 @@ public class Device
         Touch();
         Validate();
     }
-    
+
     public void UpdateBrand(string brand)
     {
         if (State == DeviceState.InUse)
@@ -41,7 +41,7 @@ public class Device
         Touch();
         Validate();
     }
-    
+
     public void UpdateState(DeviceState state)
     {
         State = state;

@@ -51,5 +51,5 @@ public class DeviceIntegrationTests : IClassFixture<CustomWebApplicationFactory<
         var response = await _client.GetAsync(_baseUrl);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-    }  
+    }
 }

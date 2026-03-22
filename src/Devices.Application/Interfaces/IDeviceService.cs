@@ -7,7 +7,7 @@ namespace Devices.Application.Interfaces;
 public interface IDeviceService
 {
     Task<Result<DeviceResponseDto>> CreateAsync(DeviceDto dto);
-    Task<Result<DeviceResponseDto>> GetByIdAsync(Guid id);    
+    Task<Result<DeviceResponseDto>> GetByIdAsync(Guid id);
     Task<Result<IEnumerable<DeviceResponseDto>>> GetAllAsync(
         int page = 1,
         int pageSize = 10,

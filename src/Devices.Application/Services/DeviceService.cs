@@ -149,7 +149,7 @@ public class DeviceService : IDeviceService
                     HttpStatusCode.NotFound,
                     new[] { "device_not_found" });
             }
-            
+
             try
             {
                 if (!string.IsNullOrWhiteSpace(dto.Name))

@@ -19,7 +19,7 @@ public class Program
             .AddInfrastructure(builder.Configuration)
             .AddJwtAuth(builder.Configuration)
             .AddRateLimiting()
-            .AddHealthCheckConfig();    
+            .AddHealthCheckConfig();
 
         builder.AddLoggingConfig();
 
@@ -33,7 +33,7 @@ public class Program
 
         // Endpoints
         app.MapControllers();
-        app.MapHealthChecks("/health");        
+        app.MapHealthChecks("/health");
 
         // Migration
         ApplyMigrations(app);

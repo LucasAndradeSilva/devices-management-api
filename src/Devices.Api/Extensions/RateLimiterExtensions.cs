@@ -1,6 +1,7 @@
 ﻿using System.Threading.RateLimiting;
 
 namespace Devices.Api.Extensions;
+
 public static class RateLimiterExtensions
 {
     public static IServiceCollection AddRateLimiting(this IServiceCollection services)

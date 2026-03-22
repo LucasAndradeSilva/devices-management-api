@@ -90,7 +90,7 @@ public class DevicesController : ControllerBase
         [FromQuery] string? brand = null,
         [FromQuery] DeviceState? state = null)
     {
-        
+
         if (state.HasValue && !Enum.IsDefined(typeof(DeviceState), state.Value))
         {
             var validStates = Enum.GetNames(typeof(DeviceState));
