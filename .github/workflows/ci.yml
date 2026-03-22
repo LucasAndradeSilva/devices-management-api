@@ -1,4 +1,4 @@
-name: CI - Build, Test and PR
+name: CI - Build, Test and Auto PR
 
 on:
   push:
@@ -10,12 +10,21 @@ permissions:
   pull-requests: write
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # Cache NuGet packages (performance boost)
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -25,20 +34,47 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
+      - name: Check code formatting
+        run: dotnet format --verify-no-changes
+
+      - name: Check for vulnerable packages
+        run: dotnet list package --vulnerable
+
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
-  run-tests:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
       - name: Run Unit Tests
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test --no-build --configuration Release --verbosity normal --logger trx
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/*.trx'
+
+  create-pr:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create Pull Request to develop
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: develop
+          branch: ${{ github.ref_name }}
+          title: "feat: auto PR from ${{ github.ref_name }} to develop"
+          body: |
+            ## 🤖 Automated Pull Request
+            
+            This PR was automatically created after a successful CI run.
+            
+            ### ✅ Checks passed:
+            - Build succeeded
+            - Unit tests passed
+            - Code formatting validated
+            - Security vulnerability check completed
+            
+            🚀 Ready for review!
+          draft: false
+          delete-branch: false
