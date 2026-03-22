@@ -83,7 +83,7 @@ namespace Devices.UnitTest.Services
             var existing = CreateDevice();
             var dto = new DeviceDto { Name = "NewName", Brand = existing.Brand };
 
-            _repositoryMock.Setup(x => x.GetByIdAsync(existing.Id)).ReturnsAsync(existing);            
+            _repositoryMock.Setup(x => x.GetByIdAsync(existing.Id)).ReturnsAsync(existing);
 
             var result = await _service.UpdateAsync(existing.Id, dto);
 
@@ -100,14 +100,14 @@ namespace Devices.UnitTest.Services
         public async Task UpdateAsync_ShouldFail_WhenDeviceInUse_AndNameOrBrandChanged()
         {
             var existing = CreateDevice(state: DeviceState.InUse, name: "OldName", brand: "OldBrand");
-            var dto = new DeviceDto { Name = "NewName", Brand = "OldBrand" }; 
+            var dto = new DeviceDto { Name = "NewName", Brand = "OldBrand" };
 
             _repositoryMock.Setup(x => x.GetByIdAsync(existing.Id)).ReturnsAsync(existing);
 
             var result = await _service.UpdateAsync(existing.Id, dto);
 
             result.IsSuccess.Should().BeFalse();
-            result.StatusCode.Should().Be(HttpStatusCode.BadRequest);            
+            result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             _repositoryMock.Verify(x => x.Update(It.IsAny<Device>()), Times.Never);
         }
 
@@ -117,7 +117,7 @@ namespace Devices.UnitTest.Services
             var existing = CreateDevice(state: DeviceState.Available, name: "OldName", brand: "OldBrand");
             var dto = new DeviceDto { Name = "NewName", Brand = "NewBrand" };
 
-            _repositoryMock.Setup(x => x.GetByIdAsync(existing.Id)).ReturnsAsync(existing);            
+            _repositoryMock.Setup(x => x.GetByIdAsync(existing.Id)).ReturnsAsync(existing);
 
             var result = await _service.UpdateAsync(existing.Id, dto);
 
@@ -152,8 +152,8 @@ namespace Devices.UnitTest.Services
 
             result.IsSuccess.Should().BeFalse();
             result.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        }   
-    
+        }
+
         [Fact]
         public async Task Delete_ShouldFail_WhenDeviceInUse()
         {
@@ -171,7 +171,7 @@ namespace Devices.UnitTest.Services
         public async Task Delete_ShouldSucceed_WhenNotInUse()
         {
             var existing = CreateDevice(state: DeviceState.Available);
-            _repositoryMock.Setup(x => x.GetByIdAsync(existing.Id)).ReturnsAsync(existing);            
+            _repositoryMock.Setup(x => x.GetByIdAsync(existing.Id)).ReturnsAsync(existing);
 
             var result = await _service.DeleteAsync(existing.Id);
 
