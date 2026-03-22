@@ -60,23 +60,28 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
+      - name: Debug branch info
+        run: |
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "ref_name: ${{ github.ref_name }}"
+          echo "head_ref: ${{ github.head_ref }}"
+          git branch -a
+          git rev-parse --abbrev-ref HEAD || true
+          git ls-remote --heads origin
+
       - name: Create Pull Request to develop
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: develop
-          branch: ${{ github.ref_name || github.head_ref }}
-          title: "feat: auto PR from ${{ github.ref_name || github.head_ref }} to develop"
+          head: ${{ github.ref_name }}
+          title: "feat: auto PR from ${{ github.ref_name }} to develop"
           body: |
             ## 🤖 Automated Pull Request
-          
             This PR was automatically created after a successful CI run.
-          
             ### ✅ Checks passed:
             - Build succeeded
             - Unit tests passed
             - Code formatting validated
-          
-            🚀 Ready for review!
           draft: false
           delete-branch: false
