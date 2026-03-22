@@ -1,4 +1,4 @@
-name: CI - Build, Test and Auto PR
+name: CI Build Test and Create PR via GH CLI
 
 on:
   push:
@@ -8,6 +8,9 @@ on:
 permissions:
   contents: write
   pull-requests: write
+
+env:
+  BASE_BRANCH: develop
 
 jobs:
   build-and-test:
@@ -64,24 +67,41 @@ jobs:
         run: |
           echo "GITHUB_REF: $GITHUB_REF"
           echo "ref_name: ${{ github.ref_name }}"
-          echo "head_ref: ${{ github.head_ref }}"
+          echo "actor: ${{ github.actor }}"
           git branch -a
           git rev-parse --abbrev-ref HEAD || true
           git ls-remote --heads origin
 
-      - name: Create Pull Request to develop
-        uses: peter-evans/create-pull-request@v6
+      - name: Setup GitHub CLI
+        uses: cli/gh-action@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: develop
-          head: ${{ github.ref_name }}
-          title: "feat: auto PR from ${{ github.ref_name }} to develop"
-          body: |
-            ## 🤖 Automated Pull Request
-            This PR was automatically created after a successful CI run.
-            ### ✅ Checks passed:
-            - Build succeeded
-            - Unit tests passed
-            - Code formatting validated
-          draft: false
-          delete-branch: false
+          token: ${{ secrets.GH_TOKEN }}    # use PAT here if needed (see notes)
+
+      - name: Ensure git user configured
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create Pull Request using gh CLI
+        run: |
+          # compute head: if actor is repo owner use branch, otherwise use owner:branch (fork case)
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          REPO_OWNER="${{ github.repository_owner }}"
+          ACTOR="${{ github.actor }}"
+
+          if [ "$REPO_OWNER" = "$ACTOR" ]; then
+            HEAD_REF="$BRANCH_NAME"
+          else
+            HEAD_REF="$ACTOR:$BRANCH_NAME"
+          fi
+
+          echo "Creating PR from $HEAD_REF to $BASE_BRANCH"
+          gh pr create \
+            --title "feat: auto PR from $BRANCH_NAME to $BASE_BRANCH" \
+            --body "Automated PR created by CI after successful build and tests." \
+            --base "$BASE_BRANCH" \
+            --head "$HEAD_REF" \
+            --label "auto-pr" \
+            --assignee "$ACTOR" || echo "gh pr create returned non-zero (maybe PR already exists)"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
