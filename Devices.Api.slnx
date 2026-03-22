@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/1 - API/">
+    <Project Path="src/Devices.Api/Devices.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/2 - Application/">
+    <Project Path="src/Devices.Application/Devices.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/3 - Domain/">
+    <Project Path="src/Devices.Domain/Devices.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/4 - Infrastructure/">
+    <Project Path="src/Decives.Infrastructure/Decives.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="src/Devices.UnitTests/Devices.UnitTests.csproj" />
+  </Folder>
+</Solution>
