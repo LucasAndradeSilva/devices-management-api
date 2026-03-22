@@ -6,6 +6,7 @@ using Devices.Application.Interfaces;
 using Devices.Application.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Data.Entity;
 
 namespace Devices.Api;
 
