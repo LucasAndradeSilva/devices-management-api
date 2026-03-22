@@ -13,6 +13,11 @@
     <Project Path="src/Decives.Infrastructure/Decives.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="src/Devices.UnitTests/Devices.UnitTests.csproj" />
+    <Project Path="src/Devices.UnitTests/Devices.UnitTests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
   </Folder>
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
 </Solution>

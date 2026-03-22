@@ -1,0 +1,32 @@
+services:
+  devices-api:
+    image: ${DOCKER_REGISTRY-}devicesapi
+    build:
+      context: .
+      dockerfile: src/Devices.Api/Dockerfile
+    container_name: devices-api
+    depends_on:
+      - sqlserver
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=DevicesDb;User Id=sa;Password=Devices#2026Db!;TrustServerCertificate=True;
+    ports:
+      - "5000:80"
+    networks:
+      - devices-network
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    hostname: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Devices#2026Db!
+    ports:
+      - "11433:1433"
+    networks:
+      - devices-network
+
+networks:
+  devices-network:

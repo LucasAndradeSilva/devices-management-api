@@ -15,8 +15,11 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<DevicesDbContext>(options =>
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection"),
-                x => x.EnableRetryOnFailure()
-            ));
+                x => x.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null)
+                ));
 
         services.AddScoped<IDeviceService, DeviceService>();
         services.AddScoped<IAuthService, AuthService>();

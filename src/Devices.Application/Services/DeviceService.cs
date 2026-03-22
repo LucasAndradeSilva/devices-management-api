@@ -200,7 +200,8 @@ public class DeviceService : IDeviceService
             Name = device.Name,
             Brand = device.Brand,
             State = device.State.ToString(),
-            CreatedAt = device.CreatedAt
+            CreatedAt = device.CreatedAt,
+            LastUpdatedAt = device.LastUpdatedAt
         };
     }
 }

@@ -8,7 +8,8 @@ public class Device
     public string Name { get; private set; }
     public string Brand { get; private set; }
     public DeviceState State { get; private set; }
-    public DateTime CreatedAt { get; private set; }    
+    public DateTime CreatedAt { get; private set; }
+    public DateTime LastUpdatedAt { get; private set; }
 
     public Device(string name, string brand)
     {
@@ -16,7 +17,7 @@ public class Device
         Name = name;
         Brand = brand;
         State = DeviceState.Available;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = DateTime.UtcNow;        
 
         Validate();
     }
@@ -28,6 +29,7 @@ public class Device
 
         Name = name;
         Brand = brand;
+        LastUpdatedAt = DateTime.UtcNow;
 
         Validate();
     }
