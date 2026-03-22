@@ -2,8 +2,11 @@
 using Devices.Application.Common;
 using Devices.Application.DTOs;
 using Devices.Application.Interfaces;
+using Devices.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Net;
 
 namespace Devices.Api.Controllers;
 
@@ -54,6 +57,7 @@ public class DevicesController : ControllerBase
     /// <response code="400">Invalid input data</response>
     /// <response code="500">Unexpected error</response>
     [HttpPost]
+    [EnableRateLimiting("fixed")]
     [ProducesResponseType(typeof(Result<object>), 400)]
     [ProducesResponseType(typeof(Result<object>), 500)]
     [ProducesResponseType(typeof(Result<DeviceResponseDto>), 201)]
@@ -77,13 +81,29 @@ public class DevicesController : ControllerBase
     /// <response code="200">Devices retrieved successfully</response>
     /// <response code="500">Unexpected error</response>
     [HttpGet]
+    [EnableRateLimiting("fixed")]
     [ProducesResponseType(typeof(Result<object>), 500)]
     [ProducesResponseType(typeof(Result<IEnumerable<DeviceResponseDto>>), 200)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10)
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? brand = null,
+        [FromQuery] DeviceState? state = null)
     {
-        var result = await _service.GetAllAsync(page, pageSize);
+        
+        if (state.HasValue && !Enum.IsDefined(typeof(DeviceState), state.Value))
+        {
+            var validStates = Enum.GetNames(typeof(DeviceState));
+
+            var failResult = Result<IEnumerable<DeviceResponseDto>>.Failure(
+                message: $"Valid statuses: {string.Join(", ", validStates)}",
+                statusCode: HttpStatusCode.BadRequest,
+                errors: ["Invalid state"]);
+
+            return StatusCode(failResult.StatusCodeValue, failResult);
+        }
+
+        var result = await _service.GetAllAsync(page, pageSize, brand, state);
         return StatusCode(result.StatusCodeValue, result);
     }
 

@@ -7,6 +7,8 @@ using Devices.Application.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Data.Entity;
+using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 namespace Devices.Api;
 
@@ -17,7 +19,12 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Controllers
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+          .AddJsonOptions(options =>
+           {
+               options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+           });
+
         builder.Services.AddEndpointsApiExplorer();
 
         // Extensions
@@ -28,6 +35,20 @@ public class Program
         builder.Services.AddHealthChecks();
         builder.Services.AddJwtAuth(builder.Configuration);
 
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.AddPolicy("fixed", context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "global",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 10, // 10 requests
+                        Window = TimeSpan.FromSeconds(10), // a cada 10s
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 2
+                    }));
+        });
+
         builder.AddLoggingConfig();
 
         var app = builder.Build();
@@ -35,6 +56,7 @@ public class Program
         // Middlewares
         app.UseSerilogRequestLogging();
         app.UseMiddleware<ExceptionMiddleware>();
+        app.UseRateLimiter();
 
         // Auth
         app.UseAuthentication();

@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using Devices.Application.Common;
 
 namespace Devices.Api.Middlewares;
 
@@ -27,14 +28,13 @@ public class ExceptionMiddleware
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-            var response = new
-            {
-                isSuccess = false,
-                message = "Internal server error",
-                statusCode = 500
-            };
+            var result = Result<object>.Failure(
+                message: "Internal server error",
+                statusCode: HttpStatusCode.InternalServerError);
 
-            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+            var json = JsonSerializer.Serialize(result);
+
+            await context.Response.WriteAsync(json);
         }
     }
 }
