@@ -1,12 +1,12 @@
-\# 🚀 Devices Management API — Complete Technical Documentation
+# 🚀 Devices Management API — Complete Technical Documentation
 
 
 
-\## 📌 Overview
+## 📌 Overview
 
 
 
-The \*\*Devices Management API\*\* is a production-ready RESTful service built with modern backend best practices using \*\*.NET\*\*. It provides a robust foundation for managing devices with scalability, testability, and cloud-native architecture in mind.
+The **Devices Management API** is a production-ready RESTful service built with modern backend best practices using **.NET**. It provides a robust foundation for managing devices with scalability, testability, and cloud-native architecture in mind.
 
 
 
@@ -14,99 +14,89 @@ This project is designed to be:
 
 
 
-\* Clean and maintainable (Clean Architecture)
+* Clean and maintainable (Clean Architecture)
 
-\* Easily deployable (Dockerized)
+* Easily deployable (Dockerized)
 
-\* Production-ready (JWT authentication, health checks, logging)
+* Production-ready (JWT authentication, health checks, logging)
 
-\* Testable (Unit tests with mocking)
-
-
-
-\---
+* Testable (Unit tests with mocking)
 
 
 
-\## 🧱 Architecture
+---
 
 
 
-The solution follows \*\*Clean Architecture principles\*\*, ensuring separation of concerns:
+## 🧱 Architecture
 
 
 
-```
+The solution follows **Clean Architecture principles**, ensuring separation of concerns:
 
+```csharp
 src/
 
-&#x20;├── Devices.Api            → Presentation Layer (Controllers, Middleware)
-
-&#x20;├── Devices.Application    → Business Logic (Services, DTOs)
-
-&#x20;├── Devices.Domain         → Core Entities
-
-&#x20;├── Devices.Infrastructure → Data Access (EF Core, Repositories)
-
-&#x20;└── Devices.UnitTests      → Unit Tests
-
+├── Devices.Api            → Presentation Layer (Controllers, Middleware)
+├── Devices.Application    → Business Logic (Services, DTOs)
+├── Devices.Domain         → Core Entities
+├── Devices.Infrastructure → Data Access (EF Core, Repositories)
+└── Devices.UnitTests      → Unit Tests
 ```
 
-
-
-\### Key Principles:
-
-
-
-\* Dependency Injection
-
-\* SOLID principles
-
-\* Repository Pattern
-
-\* Service Layer abstraction
+### Key Principles:
 
 
 
-\---
+* Dependency Injection
+
+* SOLID principles
+
+* Repository Pattern
+
+* Service Layer abstraction
 
 
 
-\## ⚙️ Tech Stack
+---
 
 
 
-\* \*\*.NET 8\*\*
-
-\* \*\*ASP.NET Core Web API\*\*
-
-\* \*\*Entity Framework Core\*\*
-
-\* \*\*SQL Server (Dockerized)\*\*
-
-\* \*\*Docker \& Docker Compose\*\*
-
-\* \*\*JWT Authentication\*\*
-
-\* \*\*xUnit + Moq + FluentAssertions\*\*
-
-\* \*\*GitHub Actions (CI/CD ready)\*\*
+## ⚙️ Tech Stack
 
 
 
-\---
+* **.NET 8**
+
+* **ASP.NET Core Web API**
+
+* **Entity Framework Core**
+
+* **SQL Server (Dockerized)**
+
+* **Docker \& Docker Compose**
+
+* **JWT Authentication**
+
+* **xUnit + Moq + FluentAssertions**
+
+* **GitHub Actions (CI/CD ready)**
 
 
 
-\## 🔐 Authentication (JWT)
+---
 
 
 
-Authentication is handled using \*\*JSON Web Tokens (JWT)\*\*.
+## 🔐 Authentication (JWT)
 
 
 
-\### Flow:
+Authentication is handled using **JSON Web Tokens (JWT)**.
+
+
+
+### Flow:
 
 
 
@@ -126,7 +116,7 @@ Authorization: Bearer {token}
 
 
 
-\### Configuration:
+### Configuration:
 
 
 
@@ -148,93 +138,93 @@ Authorization: Bearer {token}
 
 
 
-\---
+---
 
 
 
-\## 📡 API Endpoints
+## 📡 API Endpoints
 
 
 
-\### 🔹 Devices
+### 🔹 Devices
 
 
 
-\#### GET /api/devices
+#### GET /api/devices
 
 
 
-\* Retrieves all devices
+* Retrieves all devices
 
-\* Requires authentication
-
-
-
-\#### GET /api/devices/{id}
+* Requires authentication
 
 
 
-\* Retrieves a device by ID
+#### GET /api/devices/{id}
 
 
 
-\#### POST /api/devices
+* Retrieves a device by ID
 
 
 
-\* Creates a new device
+#### POST /api/devices
 
 
 
-\#### PUT /api/devices/{id}
+* Creates a new device
 
 
 
-\* Updates an existing device
+#### PUT /api/devices/{id}
 
 
 
-\#### DELETE /api/devices/{id}
+* Updates an existing device
 
 
 
-\* Deletes a device
+#### DELETE /api/devices/{id}
 
 
 
-\---
+* Deletes a device
 
 
 
-\## 🧠 Business Rules
+---
 
 
 
-\* Device name must be unique
-
-\* Device status must be valid (Active / Inactive)
-
-\* Cannot delete a non-existing device
-
-\* Validation handled at service layer
+## 🧠 Business Rules
 
 
 
-\---
+* Device name must be unique
+
+* Device status must be valid (Active / Inactive)
+
+* Cannot delete a non-existing device
+
+* Validation handled at service layer
 
 
 
-\## 🗄️ Database
+---
 
 
 
-\* SQL Server running via Docker
-
-\* EF Core used for ORM
+## 🗄️ Database
 
 
 
-\### Connection String
+* SQL Server running via Docker
+
+* EF Core used for ORM
+
+
+
+### Connection String
 
 
 
@@ -246,15 +236,15 @@ Server=sqlserver,1433;Database=DevicesDb;User Id=sa;Password=devices123;TrustSer
 
 
 
-\---
+---
 
 
 
-\## 📦 Entity Framework Commands
+## 📦 Entity Framework Commands
 
 
 
-\### Create Migration
+### Create Migration
 
 
 
@@ -266,7 +256,7 @@ dotnet ef migrations add InitialCreate
 
 
 
-\### Update Database
+### Update Database
 
 
 
@@ -278,7 +268,7 @@ dotnet ef database update
 
 
 
-\### Remove Migration
+### Remove Migration
 
 
 
@@ -290,15 +280,15 @@ dotnet ef migrations remove
 
 
 
-\---
+---
 
 
 
-\## 🐳 Docker Setup
+## 🐳 Docker Setup
 
 
 
-\### Run the application:
+### Run the application:
 
 
 
@@ -310,33 +300,33 @@ docker-compose up --build
 
 
 
-\### Services:
+### Services:
 
 
 
-\* \*\*devices-api\*\* → .NET API
+* **devices-api** → .NET API
 
-\* \*\*sqlserver\*\* → SQL Server container
-
-
-
-\### Features:
+* **sqlserver** → SQL Server container
 
 
 
-\* Healthcheck for SQL Server
-
-\* Container networking
-
-\* Volume persistence
+### Features:
 
 
 
-\---
+* Healthcheck for SQL Server
+
+* Container networking
+
+* Volume persistence
 
 
 
-\## 🧪 Unit Tests
+---
+
+
+
+## 🧪 Unit Tests
 
 
 
@@ -344,37 +334,34 @@ Implemented using:
 
 
 
-\* \*\*xUnit\*\*
+* **xUnit**
 
-\* \*\*Moq\*\*
+* **Moq**
 
-\* \*\*FluentAssertions\*\*
-
-
-
-\### Covered Areas:
+* **FluentAssertions**
 
 
 
-\* Service layer logic
-
-\* Business rules validation
-
-\* Repository interactions (mocked)
+### Covered Areas:
 
 
 
-\### Example:
+* Service layer logic
+
+* Business rules validation
+
+* Repository interactions (mocked)
+
+
+
+### Example:
 
 
 
 ```csharp
 
-\_repositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>()))
-
-&#x20;              .ReturnsAsync(device);
-
-
+_repositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>()))
+  .ReturnsAsync(device);
 
 result.Should().NotBeNull();
 
@@ -382,67 +369,67 @@ result.Should().NotBeNull();
 
 
 
-\---
+---
 
 
 
-\## 🔄 CI/CD (GitHub Actions)
+## 🔄 CI/CD (GitHub Actions)
 
 
 
-The project is ready for CI/CD with \*\*GitHub Actions\*\*.
+The project is ready for CI/CD with **GitHub Actions**.
 
 
 
-\### Pipeline includes:
+### Pipeline includes:
 
 
 
-\* Build
+* Build
 
-\* Restore dependencies
+* Restore dependencies
 
-\* Run unit tests
+* Run unit tests
 
-\* Validate code integrity
-
-
-
-\---
+* Validate code integrity
 
 
 
-\## 📊 Logging \& Observability
+---
 
 
 
-\* Structured logging with `ILogger`
-
-\* Error handling middleware
-
-\* Health checks for services
+## 📊 Logging \& Observability
 
 
 
-\---
+* Structured logging with `ILogger`
+
+* Error handling middleware
+
+* Health checks for services
 
 
 
-\## 🛠️ How to Run Locally
+---
 
 
 
-\### Requirements:
+## 🛠️ How to Run Locally
 
 
 
-\* Docker
-
-\* .NET SDK (optional if using Docker only)
+### Requirements:
 
 
 
-\### Steps:
+* Docker
+
+* .NET SDK (optional if using Docker only)
+
+
+
+### Steps:
 
 
 
@@ -466,11 +453,11 @@ http://localhost:5000
 
 
 
-\---
+---
 
 
 
-\## 📈 Production Readiness
+## 📈 Production Readiness
 
 
 

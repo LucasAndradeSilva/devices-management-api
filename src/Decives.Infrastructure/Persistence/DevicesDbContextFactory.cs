@@ -13,12 +13,12 @@ public class DevicesDbContextFactory : IDesignTimeDbContextFactory<DevicesDbCont
         var configuration = new ConfigurationBuilder()
         .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "../Devices.Api"))
         .AddJsonFile("appsettings.json")
-        .Build(); 
-        
+        .Build();
+
         var services = new ServiceCollection();
         services.AddInfrastructure(configuration);
 
-        var provider = services.BuildServiceProvider();       
+        var provider = services.BuildServiceProvider();
         return provider.GetRequiredService<DevicesDbContext>();
     }
 }

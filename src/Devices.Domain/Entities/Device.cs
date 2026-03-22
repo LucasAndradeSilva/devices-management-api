@@ -17,26 +17,40 @@ public class Device
         Name = name;
         Brand = brand;
         State = DeviceState.Available;
-        CreatedAt = DateTime.UtcNow;        
+        CreatedAt = DateTime.UtcNow;
 
         Validate();
     }
 
-    public void Update(string name, string brand)
+    public void UpdateName(string name)
     {
         if (State == DeviceState.InUse)
-            throw new InvalidOperationException("Cannot update name or brand when device is in use.");
+            throw new InvalidOperationException("Cannot update name when device is in use.");
 
         Name = name;
-        Brand = brand;
-        LastUpdatedAt = DateTime.UtcNow;
+        Touch();
+        Validate();
+    }
 
+    public void UpdateBrand(string brand)
+    {
+        if (State == DeviceState.InUse)
+            throw new InvalidOperationException("Cannot update brand when device is in use.");
+
+        Brand = brand;
+        Touch();
         Validate();
     }
 
     public void UpdateState(DeviceState state)
     {
         State = state;
+        Touch();
+    }
+
+    private void Touch()
+    {
+        LastUpdatedAt = DateTime.UtcNow;
     }
 
     public void Validate()

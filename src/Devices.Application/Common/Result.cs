@@ -1,6 +1,7 @@
 ﻿using System.Net;
 
 namespace Devices.Application.Common;
+
 public class Result<T>
 {
     public bool IsSuccess { get; }

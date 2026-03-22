@@ -1,4 +1,4 @@
-name: CI - Build, Test and PR
+name: CI Build Test and Create PR via GH CLI
 
 on:
   push:
@@ -9,13 +9,26 @@ permissions:
   contents: write
   pull-requests: write
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+env:
+  BASE_BRANCH: develop
 
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -23,22 +36,92 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore Devices.Api.slnx
+
+      - name: Check code formatting
+        run: dotnet format Devices.Api.slnx --verify-no-changes
 
       - name: Build
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build Devices.Api.slnx --no-restore --configuration Release
 
-  run-tests:
-    needs: build
+      - name: Run Unit Tests
+        run: dotnet test Devices.UnitTest/Devices.UnitTest.csproj --no-build --configuration Release --verbosity normal --logger trx
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/*.trx'
+
+  create-pr:
+    needs: build-and-test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          fetch-depth: 0
+          persist-credentials: true
 
-      - name: Run Unit Tests
-        run: dotnet test --no-build --verbosity normal
+      - name: Debug branch info
+        run: |
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "ref_name: ${{ github.ref_name }}"
+          echo "actor: ${{ github.actor }}"
+          git branch -a
+          git rev-parse --abbrev-ref HEAD || true
+          git ls-remote --heads origin
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl apt-transport-https ca-certificates gnupg
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y gh
+
+      - name: Authenticate gh CLI
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          echo "$GH_TOKEN" | gh auth login --with-token
+          gh auth status
+
+      - name: Ensure git user configured
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create Pull Request using gh CLI
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          BASE_BRANCH: ${{ env.BASE_BRANCH }}
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          REPO_OWNER="${{ github.repository_owner }}"
+          ACTOR="${{ github.actor }}"
+
+          if [ "$REPO_OWNER" = "$ACTOR" ]; then
+            HEAD_REF="$BRANCH_NAME"
+          else
+            HEAD_REF="$ACTOR:$BRANCH_NAME"
+          fi
+
+          echo "Checking existing PRs for head=$HEAD_REF and base=$BASE_BRANCH"
+          EXISTING_PR=$(gh pr list --head "$HEAD_REF" --base "$BASE_BRANCH" --json number --jq '.[0].number' 2>/dev/null || true)
+
+          if [ -n "$EXISTING_PR" ]; then
+            echo "PR already exists: #$EXISTING_PR"
+            gh pr view "$EXISTING_PR" || true
+          else
+            echo "Creating PR from $HEAD_REF to $BASE_BRANCH"
+            gh pr create \
+              --title "feat: auto PR from $BRANCH_NAME to $BASE_BRANCH" \
+              --body "Automated PR created by CI after successful build and tests." \
+              --base "$BASE_BRANCH" \
+              --head "$HEAD_REF" \
+              --label "auto-pr" \
+              --assignee "$ACTOR" || echo "gh pr create returned non-zero (maybe PR already exists)"
+          fi

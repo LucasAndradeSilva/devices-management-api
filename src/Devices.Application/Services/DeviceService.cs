@@ -1,10 +1,11 @@
-﻿using System.Net;
-using Devices.Application.Common;
+﻿using Devices.Application.Common;
 using Devices.Application.DTOs;
 using Devices.Application.Interfaces;
 using Devices.Domain.Entities;
 using Devices.Domain.Enums;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
+using System.Net;
 
 namespace Devices.Application.Services;
 
@@ -56,13 +57,35 @@ public class DeviceService : IDeviceService
         }
     }
 
-    public async Task<Result<IEnumerable<DeviceResponseDto>>> GetAllAsync(int page = 1, int pageSize = 10)
+    public async Task<Result<IEnumerable<DeviceResponseDto>>> GetAllAsync(
+        int page = 1,
+        int pageSize = 10,
+        string? brand = null,
+        DeviceState? state = null)
     {
         try
         {
-            _logger.LogInformation("Fetching devices Page: {Page}, PageSize: {PageSize}", page, pageSize);
+            _logger.LogInformation(
+                "Fetching devices Page: {Page}, PageSize: {PageSize}, Brand: {Brand}, State: {State}",
+                page, pageSize, brand, state);
+
+            Expression<Func<Device, bool>>? filter = null;
+
+            if (!string.IsNullOrEmpty(brand) && state.HasValue)
+            {
+                filter = x => x.Brand == brand && x.State == state.Value;
+            }
+            else if (!string.IsNullOrEmpty(brand))
+            {
+                filter = x => x.Brand == brand;
+            }
+            else if (state.HasValue)
+            {
+                filter = x => x.State == state.Value;
+            }
 
             var devices = await _repository.GetAsync(
+                filter: filter,
                 page: page,
                 pageSize: pageSize,
                 asNoTracking: true);
@@ -75,6 +98,7 @@ public class DeviceService : IDeviceService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error while fetching devices");
+
             return Result<IEnumerable<DeviceResponseDto>>.Failure(
                 "Unexpected error occurred",
                 HttpStatusCode.InternalServerError);
@@ -119,28 +143,42 @@ public class DeviceService : IDeviceService
             if (device == null)
             {
                 _logger.LogWarning("Update failed: Device not found {DeviceId}", id);
-                return Result<bool>.Failure("Device not found", HttpStatusCode.NotFound, new[] { "device_not_found" });
+
+                return Result<bool>.Failure(
+                    "Device not found",
+                    HttpStatusCode.NotFound,
+                    new[] { "device_not_found" });
             }
 
-            if (device.State == DeviceState.InUse)
+            try
             {
-                _logger.LogWarning("Update failed: Device is in use {DeviceId}", id);
-                return Result<bool>.Failure("Device is in use", HttpStatusCode.BadRequest, new[] { "device_in_use" });
-            }
+                if (!string.IsNullOrWhiteSpace(dto.Name))
+                    device.UpdateName(dto.Name);
 
-            if (string.IsNullOrWhiteSpace(dto.Name))
+                if (!string.IsNullOrWhiteSpace(dto.Brand))
+                    device.UpdateBrand(dto.Brand);
+
+                if (dto.State.HasValue)
+                    device.UpdateState(dto.State.Value);
+            }
+            catch (InvalidOperationException ex)
             {
-                _logger.LogWarning("Update failed: Name is required");
-                return Result<bool>.Failure("Name is required", HttpStatusCode.BadRequest, new[] { "invalid_name" });
-            }
+                _logger.LogWarning(ex, "Business rule violation on update {DeviceId}", id);
 
-            if (string.IsNullOrWhiteSpace(dto.Brand))
+                return Result<bool>.Failure(
+                    ex.Message,
+                    HttpStatusCode.BadRequest,
+                    new[] { "business_rule_violation" });
+            }
+            catch (ArgumentException ex)
             {
-                _logger.LogWarning("Update failed: Brand is required");
-                return Result<bool>.Failure("Brand is required", HttpStatusCode.BadRequest, new[] { "invalid_brand" });
-            }
+                _logger.LogWarning(ex, "Validation error on update {DeviceId}", id);
 
-            device.Update(dto.Name, dto.Brand);
+                return Result<bool>.Failure(
+                    ex.Message,
+                    HttpStatusCode.BadRequest,
+                    new[] { "validation_error" });
+            }
 
             _repository.Update(device);
             await _repository.SaveChangesAsync();
@@ -152,6 +190,7 @@ public class DeviceService : IDeviceService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error while updating device {DeviceId}", id);
+
             return Result<bool>.Failure(
                 "Unexpected error occurred",
                 HttpStatusCode.InternalServerError);
