@@ -41,7 +41,7 @@ jobs:
         run: dotnet build Devices.Api.slnx --no-restore --configuration Release
 
       - name: Run Unit Tests
-        run: dotnet test Devices.Api.slnx --no-build --configuration Release --verbosity normal --logger trx
+        run: dotnet test Devices.UnitTest/Devices.UnitTest.csproj --no-build --configuration Release --verbosity normal --logger trx
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
