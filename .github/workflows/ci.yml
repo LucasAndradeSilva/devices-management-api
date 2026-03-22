@@ -72,10 +72,22 @@ jobs:
           git rev-parse --abbrev-ref HEAD || true
           git ls-remote --heads origin
 
-      - name: Setup GitHub CLI
-        uses: cli/gh-action@v3
-        with:
-          token: ${{ secrets.GH_TOKEN }}    # use PAT here if needed (see notes)
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl apt-transport-https ca-certificates gnupg
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y gh
+
+      - name: Authenticate gh CLI
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          echo "$GH_TOKEN" | gh auth login --with-token
+          gh auth status
 
       - name: Ensure git user configured
         run: |
@@ -83,8 +95,10 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Create Pull Request using gh CLI
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          BASE_BRANCH: ${{ env.BASE_BRANCH }}
         run: |
-          # compute head: if actor is repo owner use branch, otherwise use owner:branch (fork case)
           BRANCH_NAME="${GITHUB_REF#refs/heads/}"
           REPO_OWNER="${{ github.repository_owner }}"
           ACTOR="${{ github.actor }}"
@@ -95,13 +109,19 @@ jobs:
             HEAD_REF="$ACTOR:$BRANCH_NAME"
           fi
 
-          echo "Creating PR from $HEAD_REF to $BASE_BRANCH"
-          gh pr create \
-            --title "feat: auto PR from $BRANCH_NAME to $BASE_BRANCH" \
-            --body "Automated PR created by CI after successful build and tests." \
-            --base "$BASE_BRANCH" \
-            --head "$HEAD_REF" \
-            --label "auto-pr" \
-            --assignee "$ACTOR" || echo "gh pr create returned non-zero (maybe PR already exists)"
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          echo "Checking existing PRs for head=$HEAD_REF and base=$BASE_BRANCH"
+          EXISTING_PR=$(gh pr list --head "$HEAD_REF" --base "$BASE_BRANCH" --json number --jq '.[0].number' 2>/dev/null || true)
+
+          if [ -n "$EXISTING_PR" ]; then
+            echo "PR already exists: #$EXISTING_PR"
+            gh pr view "$EXISTING_PR" || true
+          else
+            echo "Creating PR from $HEAD_REF to $BASE_BRANCH"
+            gh pr create \
+              --title "feat: auto PR from $BRANCH_NAME to $BASE_BRANCH" \
+              --body "Automated PR created by CI after successful build and tests." \
+              --base "$BASE_BRANCH" \
+              --head "$HEAD_REF" \
+              --label "auto-pr" \
+              --assignee "$ACTOR" || echo "gh pr create returned non-zero (maybe PR already exists)"
+          fi
